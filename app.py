@@ -162,9 +162,7 @@ def ask_gemini_skill_impact(user_desc: str, skill: str) -> Tuple[bool, str]:
             "You are assessing whether a user's description affects their ability to perform a specific skill.\n\n"
             f"User description: ```{user_desc}```\n"
             f"Skill to assess: \"{skill}\"\n\n"
-            "Respond strictly in JSON with two fields: \n"
-            "{\n  \"impacts_skill\": \"YES\" or \"NO\",\n  \"reason\": \"a one-sentence brief rationale\"\n}\n"
-            "Only return JSON."
+            "Respond with ONLY 'YES' or 'NO'. No punctuation, no explanations, no JSON."
         )
         resp = model.generate_content(prompt)
         text = getattr(resp, "text", None)
@@ -244,20 +242,28 @@ def skill_sliders():
     return render_template('index.html', skills=unique_skills, scores=None, results=None)
 
 def user_Disabilities():
-    """Prompt for a description and a specific skill, then ask Gemini about impact."""
-    global userDesc, userSkillQuery, userDescImpact
+    """Prompt for a description, then ask Gemini for EVERY skill; store ONLY YES/NO in a temp list."""
+    global userDesc, userDescImpactsYN
     try:
         userDesc = input("Enter any disability or description you have: ").strip()
     except Exception:
         userDesc = ""
-    try:
-        userSkillQuery = input("Enter the specific skill to assess impact on (e.g., 'Active Listening'): ").strip()
-    except Exception:
-        userSkillQuery = ""
 
-    impacts, message = ask_gemini_skill_impact(userDesc, userSkillQuery)
-    userDescImpact = {"impacts": impacts, "message": message}
-    print(f"Gemini assessment for skill '{userSkillQuery}': {message}")
+    # Ensure skills are loaded
+    if not _UNIQUE_SKILLS or not _TITLE_SKILL_IMPORTANCE:
+        _load_skills_cache()
+
+    skills = _UNIQUE_SKILLS if _UNIQUE_SKILLS else get_unique_elements(_SKILLS_FILE, "Element Name")
+
+    # Temporary list storing ONLY "YES" or "NO" per skill in the same order as `skills`
+    userDescImpactsYN = []
+    for skill in skills:
+        impacts, _ = ask_gemini_skill_impact(userDesc, skill)
+        userDescImpactsYN.append("YES" if impacts else "NO")
+        print(skill, "is done")
+
+    print(f"Collected AI YES/NO impacts for {len(skills)} skills into userDescImpactsYN.")
+    print(userDescImpactsYN) # parallelize llm requests for speed
 
 # also use dropdown for list and severity
 
