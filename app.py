@@ -2,6 +2,13 @@
 from flask import Flask, render_template, request
 import pandas as pd
 from typing import Dict, List, Tuple
+import os
+
+# Optional Gemini import (guarded so app still runs without the package)
+try:
+    import google.generativeai as genai
+except Exception:
+    genai = None
 
 app = Flask(__name__)
 
@@ -127,6 +134,76 @@ def _compute_job_scores(user_scores: Dict[str, int], top_n: int = 25) -> List[Tu
     return results[:top_n]
 
 
+def ask_gemini_skill_impact(user_desc: str, skill: str) -> Tuple[bool, str]:
+    """Ask Gemini whether the user's description affects the specified skill.
+
+    Returns (impacts_skill, message) where impacts_skill is a boolean and message
+    includes a concise YES/NO plus brief rationale or an error/explainer.
+    """
+    # Basic validation
+    if not user_desc or not skill:
+        return False, "No description or skill provided; cannot assess."
+
+    # Ensure SDK is available
+    if genai is None:
+        return (
+            False,
+            "Gemini client not available. Install 'google-generativeai' and set GEMINI_API_KEY to enable AI assessment.",
+        )
+
+    api_key = os.getenv("GEMINI_API_KEY")
+    if not api_key:
+        return False, "GEMINI_API_KEY environment variable is not set; cannot contact Gemini."
+
+    try:
+        genai.configure(api_key=api_key)
+        model = genai.GenerativeModel("gemini-1.5-flash")
+        prompt = (
+            "You are assessing whether a user's description affects their ability to perform a specific skill.\n\n"
+            f"User description: ```{user_desc}```\n"
+            f"Skill to assess: \"{skill}\"\n\n"
+            "Respond strictly in JSON with two fields: \n"
+            "{\n  \"impacts_skill\": \"YES\" or \"NO\",\n  \"reason\": \"a one-sentence brief rationale\"\n}\n"
+            "Only return JSON."
+        )
+        resp = model.generate_content(prompt)
+        text = getattr(resp, "text", None)
+        if not text:
+            # Fallback attempt to extract text if SDK exposes candidates
+            try:
+                text = resp.candidates[0].content.parts[0].text  # type: ignore[attr-defined]
+            except Exception:
+                text = ""
+
+        # Try to parse JSON from response
+        import re, json  # local import to keep globals minimal
+
+        match = re.search(r"\{.*\}", text, re.DOTALL)
+        if match:
+            try:
+                obj = json.loads(match.group(0))
+                val = str(obj.get("impacts_skill", "")).strip().upper()
+                impacts = val.startswith("Y")
+                reason = obj.get("reason") or ""
+                msg = f"{'YES' if impacts else 'NO'} - {reason}".strip()
+                return impacts, msg
+            except Exception:
+                pass
+
+        # Fallback: simple heuristic
+        upper = text.upper()
+        if "YES" in upper and "NO" not in upper:
+            impacts = True
+        elif "NO" in upper and "YES" not in upper:
+            impacts = False
+        else:
+            impacts = False
+        return impacts, (text.strip() or "No response from Gemini.")
+
+    except Exception as e:
+        return False, f"Error calling Gemini: {e}"
+
+
 @app.route('/', methods=['GET', 'POST'])
 def skill_sliders():
     """
@@ -166,6 +243,24 @@ def skill_sliders():
     # GET request
     return render_template('index.html', skills=unique_skills, scores=None, results=None)
 
+def user_Disabilities():
+    """Prompt for a description and a specific skill, then ask Gemini about impact."""
+    global userDesc, userSkillQuery, userDescImpact
+    try:
+        userDesc = input("Enter any disability or description you have: ").strip()
+    except Exception:
+        userDesc = ""
+    try:
+        userSkillQuery = input("Enter the specific skill to assess impact on (e.g., 'Active Listening'): ").strip()
+    except Exception:
+        userSkillQuery = ""
+
+    impacts, message = ask_gemini_skill_impact(userDesc, userSkillQuery)
+    userDescImpact = {"impacts": impacts, "message": message}
+    print(f"Gemini assessment for skill '{userSkillQuery}': {message}")
+
+# also use dropdown for list and severity
 
 if __name__ == '__main__':
+    user_Disabilities()
     app.run(debug=True)
