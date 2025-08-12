@@ -1,0 +1,121 @@
+<!-- C:/Users/karth/PycharmProjects/FlaskProject/templates/index.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Skill Sliders</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: #f4f7f6;
+            color: #333;
+            margin: 0;
+            padding: 2rem;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 2rem;
+            background-color: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 2rem;
+        }
+        .slider-group {
+            margin-bottom: 1.5rem;
+        }
+        .slider-group label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+        .slider-container {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        input[type="range"] {
+            flex-grow: 1;
+            -webkit-appearance: none;
+            appearance: none;
+            width: 100%;
+            height: 8px;
+            background: #ddd;
+            border-radius: 5px;
+            outline: none;
+            opacity: 0.7;
+            transition: opacity .2s;
+        }
+        input[type="range"]:hover {
+            opacity: 1;
+        }
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            background: #007bff;
+            border-radius: 50%;
+            cursor: pointer;
+        }
+        input[type="range"]::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            background: #007bff;
+            border-radius: 50%;
+            cursor: pointer;
+        }
+        .slider-value {
+            font-weight: 600;
+            color: #007bff;
+            min-width: 30px; /* Prevents layout shift */
+            text-align: right;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>O*NET Skill Ratings</h1>
+
+    <!--
+      Jinja2 template engine will loop through the 'skills' list passed from Flask.
+      For each skill, it creates a div with a label, a slider, and a span to show the value.
+    -->
+    {% for skill in skills %}
+    <div class="slider-group">
+        <label for="{{ skill }}">{{ skill }}</label>
+        <div class="slider-container">
+            <input type="range" id="{{ skill }}" name="{{ skill }}" min="0" max="7" value="0" class="slider">
+            <span class="slider-value" id="{{ skill }}-value">50</span>
+        </div>
+    </div>
+    {% endfor %}
+
+</div>
+
+<script>
+    // Select all elements with the class 'slider'
+    const sliders = document.querySelectorAll('.slider');
+
+    // Add an event listener to each slider
+    sliders.forEach(slider => {
+        slider.addEventListener('input', (event) => {
+            // Find the corresponding span to display the value
+            // It's identified by the slider's ID + '-value'
+            const valueSpan = document.getElementById(`${event.target.id}-value`);
+            if (valueSpan) {
+                // Update the span's text with the slider's current value
+                valueSpan.textContent = event.target.value;
+            }
+        });
+    });
+</script>
+
+</body>
+</html>
