@@ -14,7 +14,7 @@
             padding: 2rem;
         }
         .container {
-            max-width: 800px;
+            max-width: 900px;
             margin: 0 auto;
             padding: 2rem;
             background-color: #ffffff;
@@ -24,10 +24,15 @@
         h1 {
             text-align: center;
             color: #2c3e50;
-            margin-bottom: 2rem;
+            margin-bottom: 1rem;
+        }
+        .info {
+            text-align: center;
+            color: #555;
+            margin-bottom: 1rem;
         }
         .slider-group {
-            margin-bottom: 1.5rem;
+            margin-bottom: 1rem;
         }
         .slider-group label {
             display: block;
@@ -48,7 +53,7 @@
             background: #ddd;
             border-radius: 5px;
             outline: none;
-            opacity: 0.7;
+            opacity: 0.9;
             transition: opacity .2s;
         }
         input[type="range"]:hover {
@@ -73,44 +78,76 @@
         .slider-value {
             font-weight: 600;
             color: #007bff;
-            min-width: 30px; /* Prevents layout shift */
+            min-width: 30px;
             text-align: right;
         }
+        .actions {
+            margin-top: 1rem;
+            text-align: center;
+        }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 0.6rem 1rem;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+        button:hover { background: #0065d1; }
+        .results {
+            margin-top: 2rem;
+        }
+        .results h2 { margin-bottom: 0.5rem; }
+        .muted { color: #777; }
     </style>
 </head>
 <body>
 
 <div class="container">
     <h1>O*NET Skill Ratings</h1>
+    {% if submitted_message %}
+      <p class="info">{{ submitted_message }}</p>
+    {% else %}
+      <p class="info">Adjust sliders to rate your proficiency (0–7). Submit to see best-matching job titles based on O*NET skill importance.</p>
+    {% endif %}
 
-    <!--
-      Jinja2 template engine will loop through the 'skills' list passed from Flask.
-      For each skill, it creates a div with a label, a slider, and a span to show the value.
-    -->
-    {% for skill in skills %}
-    <div class="slider-group">
-        <label for="{{ skill }}">{{ skill }}</label>
-        <div class="slider-container">
-            <input type="range" id="{{ skill }}" name="{{ skill }}" min="0" max="7" value="0" class="slider">
-            <span class="slider-value" id="{{ skill }}-value">50</span>
-        </div>
-    </div>
-    {% endfor %}
+    <form method="POST">
+      {% for skill in skills %}
+      {% set current = (scores[skill] if scores and (skill in scores) else 0) %}
+      <div class="slider-group">
+          <label for="{{ skill }}">{{ skill }}</label>
+          <div class="slider-container">
+              <input type="range" id="{{ skill }}" name="{{ skill }}" min="0" max="7" value="{{ current }}" class="slider">
+              <span class="slider-value" id="{{ skill }}-value">{{ current }}</span>
+          </div>
+      </div>
+      {% endfor %}
 
+      <div class="actions">
+        <button type="submit">Get Matching Jobs</button>
+      </div>
+    </form>
+
+    {% if results %}
+      <div class="results">
+        <h2>Top Matching Job Titles</h2>
+        <ol>
+          {% for title, score in results %}
+            <li>{{ title }} — {{ (score * 100) | round(1) }}%</li>
+          {% endfor %}
+        </ol>
+      </div>
+    {% elif results is not none %}
+      <p class="muted">No matches could be computed with the current inputs.</p>
+    {% endif %}
 </div>
 
 <script>
-    // Select all elements with the class 'slider'
-    const sliders = document.querySelectorAll('.slider');
-
-    // Add an event listener to each slider
-    sliders.forEach(slider => {
+    // Keep the value display in sync on input
+    document.querySelectorAll('.slider').forEach(slider => {
         slider.addEventListener('input', (event) => {
-            // Find the corresponding span to display the value
-            // It's identified by the slider's ID + '-value'
             const valueSpan = document.getElementById(`${event.target.id}-value`);
             if (valueSpan) {
-                // Update the span's text with the slider's current value
                 valueSpan.textContent = event.target.value;
             }
         });
