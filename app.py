@@ -134,26 +134,48 @@ def _compute_job_scores(user_scores: Dict[str, int], top_n: int = 25) -> List[Tu
     return results[:top_n]
 
 
-def ask_gemini_skill_impact(user_desc: str, skill: str) -> Tuple[bool, str]:
-    """Ask Gemini whether the user's description affects the specified skill.
+def ask_gemini_skill_impact(user_desc: str, skill: str) -> Tuple[bool, float, str]:
+    """Ask Gemini whether the user's description affects the specified skill and how severely.
 
-    Returns (impacts_skill, message) where impacts_skill is a boolean and message
-    includes a concise YES/NO plus brief rationale or an error/explainer.
+    Returns (impacts_skill, severity_0to1, message) where:
+    - impacts_skill is a boolean for YES/NO impact
+    - severity_0to1 is a float in [0.0, 1.0] representing severity of that YES/NO
+    - message includes a concise summary or error/explainer.
     """
     # Basic validation
     if not user_desc or not skill:
-        return False, "No description or skill provided; cannot assess."
+        return False, 0.0, "No description or skill provided; cannot assess."
 
     # Ensure SDK is available
     if genai is None:
         return (
             False,
+            0.0,
             "Gemini client not available. Install 'google-generativeai' and set GEMINI_API_KEY to enable AI assessment.",
         )
 
     api_key = os.getenv("GEMINI_API_KEY")
     if not api_key:
-        return False, "GEMINI_API_KEY environment variable is not set; cannot contact Gemini."
+        return False, 0.0, "GEMINI_API_KEY environment variable is not set; cannot contact Gemini."
+
+    def _norm_sev(val) -> float:
+        """Normalize severity input to [0,1]. Accepts number or LOW/MEDIUM/HIGH/VERY HIGH."""
+        try:
+            f = float(val)
+            if f != f:  # NaN
+                return 0.0
+            return max(0.0, min(1.0, f))
+        except Exception:
+            s = str(val).strip().upper()
+            if s in ("LOW", "L"):
+                return 0.25
+            if s in ("MEDIUM", "MID", "M"):
+                return 0.5
+            if s in ("HIGH", "H"):
+                return 0.75
+            if s in ("VERY HIGH", "VERY_HIGH", "VERYHIGH", "VH"):
+                return 0.9
+            return 0.0
 
     try:
         genai.configure(api_key=api_key)
@@ -162,7 +184,9 @@ def ask_gemini_skill_impact(user_desc: str, skill: str) -> Tuple[bool, str]:
             "You are assessing whether a user's description affects their ability to perform a specific skill.\n\n"
             f"User description: ```{user_desc}```\n"
             f"Skill to assess: \"{skill}\"\n\n"
-            "Respond with ONLY 'YES' or 'NO'. No punctuation, no explanations, no JSON."
+            "Respond strictly in JSON with three fields only: \n"
+            "{\n  \"impacts_skill\": \"YES\" or \"NO\",\n  \"severity\": a number from 0 to 1 (0=no severity, 1=maximum),\n  \"reason\": \"a one-sentence brief rationale\"\n}\n"
+            "Only return JSON."
         )
         resp = model.generate_content(prompt)
         text = getattr(resp, "text", None)
@@ -176,30 +200,54 @@ def ask_gemini_skill_impact(user_desc: str, skill: str) -> Tuple[bool, str]:
         # Try to parse JSON from response
         import re, json  # local import to keep globals minimal
 
-        match = re.search(r"\{.*\}", text, re.DOTALL)
+        impacts: bool = False
+        severity: float = 0.0
+        msg: str = text.strip() if isinstance(text, str) else ""
+
+        match = re.search(r"\{.*\}", text or "", re.DOTALL)
         if match:
             try:
                 obj = json.loads(match.group(0))
                 val = str(obj.get("impacts_skill", "")).strip().upper()
                 impacts = val.startswith("Y")
+                severity = _norm_sev(obj.get("severity", 0.0))
                 reason = obj.get("reason") or ""
-                msg = f"{'YES' if impacts else 'NO'} - {reason}".strip()
-                return impacts, msg
+                msg = f"{'YES' if impacts else 'NO'} ({severity:.2f}) - {reason}".strip()
+                return impacts, severity, msg
             except Exception:
                 pass
 
-        # Fallback: simple heuristic
-        upper = text.upper()
+        # Fallback: simple heuristic from plain text
+        upper = (text or "").upper()
         if "YES" in upper and "NO" not in upper:
             impacts = True
         elif "NO" in upper and "YES" not in upper:
             impacts = False
         else:
             impacts = False
-        return impacts, (text.strip() or "No response from Gemini.")
+        # Attempt to detect a number 0..1 in the text
+        try:
+            nums = [float(n) for n in re.findall(r"0?\.\d+|1\.0+|1\b", text or "")]
+            if nums:
+                severity = max(0.0, min(1.0, max(nums)))
+            else:
+                # Map simple qualifiers
+                if any(k in upper for k in ["VERY HIGH", "VH"]):
+                    severity = 0.9
+                elif "HIGH" in upper:
+                    severity = 0.75
+                elif "MEDIUM" in upper or "MODERATE" in upper:
+                    severity = 0.5
+                elif "LOW" in upper:
+                    severity = 0.25
+                else:
+                    severity = 0.0
+        except Exception:
+            severity = 0.0
+        return impacts, severity, (msg or "No response from Gemini.")
 
     except Exception as e:
-        return False, f"Error calling Gemini: {e}"
+        return False, 0.0, f"Error calling Gemini: {e}"
 
 
 @app.route('/', methods=['GET', 'POST'])
