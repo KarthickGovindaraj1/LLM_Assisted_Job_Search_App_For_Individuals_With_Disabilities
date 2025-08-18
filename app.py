@@ -17,6 +17,10 @@ _SKILLS_FILE = "ONET Excel Files 29.3\\Skills.xlsx"
 _UNIQUE_SKILLS: List[str] = []
 _TITLE_SKILL_IMPORTANCE: Dict[str, Dict[str, float]] = {}
 
+# Temporary per-skill impact flags collected from user description (aligned with _UNIQUE_SKILLS order)
+# Values are strings "YES" or "NO"; may be empty if not collected in this session.
+userDescImpactsYN: List[str] = []
+
 
 def _safe_col(df: pd.DataFrame, candidates: List[str]) -> str:
     """Return the first existing column name from candidates; raise if none present."""
@@ -79,6 +83,43 @@ def _load_skills_cache() -> None:
     _TITLE_SKILL_IMPORTANCE = mapping
 
 
+def _build_skill_impact_factor_map(skills: List[str]) -> Dict[str, float]:
+    """Return a mapping skill -> factor based on global userDescImpactsYN.
+
+    - If userDescImpactsYN is empty or sizes mismatch, returns an empty dict (no adjustments).
+    - For entries marked "YES", apply a multiplicative factor F in [0,1] (default 0.6).
+    - For "NO", factor is 1.0.
+    The factor F can be configured via env var IMPACT_YES_FACTOR.
+    """
+    try:
+        raw = os.getenv("IMPACT_YES_FACTOR", "0.6")
+        F = float(raw)
+        if not (0.0 <= F <= 1.0):
+            F = 0.6
+    except Exception:
+        F = 0.6
+
+    if not skills:
+        return {}
+    # Use the global list; align by position if possible
+    try:
+        global userDescImpactsYN
+    except Exception:
+        return {}
+
+    if not userDescImpactsYN:
+        return {}
+
+    # Build map conservatively: zip by min length to avoid IndexErrors
+    factor_map: Dict[str, float] = {}
+    L = min(len(skills), len(userDescImpactsYN))
+    for i in range(L):
+        sk = skills[i]
+        flag = str(userDescImpactsYN[i]).strip().upper()
+        factor_map[sk] = (F if flag == "YES" else 1.0)
+    return factor_map
+
+
 def get_unique_elements(file_path: str, column_name: str) -> list:
     """Reads an Excel file and returns a sorted list of unique elements from a column."""
     try:
@@ -98,7 +139,9 @@ def _compute_job_scores(user_scores: Dict[str, int], top_n: int = 25) -> List[Tu
 
     - user_scores: raw slider ratings per skill (0–7 scale).
     - Uses importance weights per title (normalized 0–1) from Skills.xlsx (Scale ID == 'IM'), ignoring Not Relevant.
-    - Score per title = sum(w * r) / sum(w), where r is user rating normalized to 0–1.
+    - Applies a per-skill impact factor derived from the temporary YES/NO list (userDescImpactsYN):
+      if a skill is marked YES (impacted), r is multiplied by IMPACT_YES_FACTOR (default 0.6); NO keeps r unchanged.
+    - Score per title = sum(w * (r * factor)) / sum(w), where r is user rating normalized to 0–1.
     """
     if not _TITLE_SKILL_IMPORTANCE:
         _load_skills_cache()
@@ -115,6 +158,10 @@ def _compute_job_scores(user_scores: Dict[str, int], top_n: int = 25) -> List[Tu
         # Slider is 0–7 (inclusive). Normalize; clamp between 0 and 1.
         user_norm[skill] = max(0.0, min(1.0, val / 7.0))
 
+    # Build impact factor map from global YES/NO flags; if unavailable, returns empty and factors default to 1.0
+    skills_for_map = _UNIQUE_SKILLS if _UNIQUE_SKILLS else list(user_norm.keys())
+    impact_factor_map = _build_skill_impact_factor_map(skills_for_map)
+
     results: List[Tuple[str, float]] = []
     for title, skill_weights in _TITLE_SKILL_IMPORTANCE.items():
         num = 0.0
@@ -123,7 +170,9 @@ def _compute_job_scores(user_scores: Dict[str, int], top_n: int = 25) -> List[Tu
             r = user_norm.get(skill)
             if r is None:
                 continue
-            num += w * r
+            factor = impact_factor_map.get(skill, 1.0)
+            r_adj = r * factor
+            num += w * r_adj
             den += w
         if den > 0:
             score = num / den  # 0–1
@@ -368,6 +417,7 @@ def user_Disabilities():
     print(userDescImpactsYN)  # parallelize llm requests for speed
 
 # also use dropdown for list and severity
+# search for a specific job with inputs and seeing compatiility and any issues involved
 
 if __name__ == '__main__':
     user_Disabilities()
