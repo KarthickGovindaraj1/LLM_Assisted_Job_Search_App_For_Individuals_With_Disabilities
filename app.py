@@ -290,12 +290,23 @@ def skill_sliders():
     return render_template('index.html', skills=unique_skills, scores=None, results=None)
 
 def user_Disabilities():
-    """Prompt for a description, then ask Gemini for EVERY skill; store ONLY YES/NO in a temp list."""
+    """Prompt for a description, then ask Gemini for EVERY skill; store ONLY YES/NO in a temp list.
+
+    Parallelizes LLM requests to speed up processing while preserving the original order of skills.
+    Configure concurrency with env var LLM_MAX_WORKERS (default 5). Falls back to sequential if needed.
+    """
     global userDesc, userDescImpactsYN
     try:
         userDesc = input("Enter any disability or description you have: ").strip()
     except Exception:
         userDesc = ""
+
+    # Local import to avoid broad file changes
+    try:
+        from concurrent.futures import ThreadPoolExecutor, as_completed
+    except Exception:
+        ThreadPoolExecutor = None  # type: ignore
+        as_completed = None  # type: ignore
 
     # Ensure skills are loaded
     if not _UNIQUE_SKILLS or not _TITLE_SKILL_IMPORTANCE:
@@ -304,14 +315,57 @@ def user_Disabilities():
     skills = _UNIQUE_SKILLS if _UNIQUE_SKILLS else get_unique_elements(_SKILLS_FILE, "Element Name")
 
     # Temporary list storing ONLY "YES" or "NO" per skill in the same order as `skills`
-    userDescImpactsYN = []
-    for skill in skills:
-        impacts, _ = ask_gemini_skill_impact(userDesc, skill)
-        userDescImpactsYN.append("YES" if impacts else "NO")
-        print(skill, "is done")
+    # Try parallel execution if the concurrency tools are available
+    def _sequential():
+        seq_results = []
+        for skill in skills:
+            try:
+                impacts, _sev, _msg = ask_gemini_skill_impact(userDesc, skill)
+                seq_results.append("YES" if impacts else "NO")
+            except Exception:
+                seq_results.append("NO")
+            print(skill, "is done")
+        return seq_results
+
+    if not skills:
+        userDescImpactsYN = []
+        print("No skills loaded; nothing to assess.")
+        print(userDescImpactsYN)
+        return
+
+    if ThreadPoolExecutor is None or as_completed is None:
+        userDescImpactsYN = _sequential()
+    else:
+        # Parallel path
+        max_workers_str = os.getenv("LLM_MAX_WORKERS", "5")
+        try:
+            max_workers = max(1, int(float(max_workers_str)))
+        except Exception:
+            max_workers = 5
+
+        userDescImpactsYN = ["NO"] * len(skills)
+        print(f"Submitting {len(skills)} skills to Gemini with max_workers={max_workers}...")
+        try:
+            with ThreadPoolExecutor(max_workers=max_workers) as executor:
+                future_map = {executor.submit(ask_gemini_skill_impact, userDesc, skill): (idx, skill)
+                              for idx, skill in enumerate(skills)}
+                done = 0
+                for future in as_completed(future_map):
+                    idx, skill = future_map[future]
+                    try:
+                        impacts, _sev, _msg = future.result()
+                        userDescImpactsYN[idx] = "YES" if impacts else "NO"
+                    except Exception:
+                        userDescImpactsYN[idx] = "NO"
+                    done += 1
+                    if done % 10 == 0 or done == len(skills):
+                        print(f"Processed {done}/{len(skills)} skills...")
+        except Exception as e:
+            print(f"Parallel execution error: {e}. Falling back to sequential processing.")
+            userDescImpactsYN = _sequential()
 
     print(f"Collected AI YES/NO impacts for {len(skills)} skills into userDescImpactsYN.")
-    print(userDescImpactsYN) # parallelize llm requests for speed
+    print(userDescImpactsYN)  # parallelize llm requests for speed
 
 # also use dropdown for list and severity
 

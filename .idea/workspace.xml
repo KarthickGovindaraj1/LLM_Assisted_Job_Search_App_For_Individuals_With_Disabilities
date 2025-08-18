@@ -4,8 +4,11 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="5a9d1d9f-d33a-4575-98d4-724bdeda3423" name="Changes" comment="ai stored in a list yes or no to the effect, incorrect due to old ai and incorrect outputs">
+    <list default="true" id="5a9d1d9f-d33a-4575-98d4-724bdeda3423" name="Changes" comment="commit before parallelizing, asked ai to give ratings for each section for a entered condition">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app.py" beforeDir="false" afterPath="$PROJECT_DIR$/app.py" afterDir="false" />
+    </list>
+    <list id="2f0fa846-ffe5-4d91-93cb-17a1ecf44a6a" name="Changes by Leif" comment="">
       <change beforePath="$PROJECT_DIR$/app.py" beforeDir="false" afterPath="$PROJECT_DIR$/app.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -34,6 +37,17 @@
   </component>
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="LineStatusTrackerManager">
+    <file path="$PROJECT_DIR$/app.py">
+      <ranges>
+        <range start1="158" end1="159" start2="158" end2="159" changelist="2f0fa846-ffe5-4d91-93cb-17a1ecf44a6a" />
+        <range start1="292" end1="293" start2="292" end2="297" changelist="5a9d1d9f-d33a-4575-98d4-724bdeda3423" />
+        <range start1="299" end1="299" start2="303" end2="310" changelist="5a9d1d9f-d33a-4575-98d4-724bdeda3423" />
+        <range start1="306" end1="311" start2="317" end2="365" changelist="5a9d1d9f-d33a-4575-98d4-724bdeda3423" />
+        <range start1="313" end1="314" start2="367" end2="368" changelist="5a9d1d9f-d33a-4575-98d4-724bdeda3423" />
+      </ranges>
+    </file>
   </component>
   <component name="ProblemsViewState">
     <option name="selectedTabId" value="CurrentFile" />
@@ -141,7 +155,7 @@
       <workItem from="1755209976501" duration="6982000" />
       <workItem from="1755228095833" duration="6145000" />
       <workItem from="1755314248454" duration="22674000" />
-      <workItem from="1755464727360" duration="1892000" />
+      <workItem from="1755464727360" duration="2892000" />
     </task>
     <task id="LOCAL-00001" summary="with submit button">
       <option name="closed" value="true" />
@@ -175,7 +189,15 @@
       <option name="project" value="LOCAL" />
       <updated>1755032025399</updated>
     </task>
-    <option name="localTasksCounter" value="5" />
+    <task id="LOCAL-00005" summary="commit before parallelizing, asked ai to give ratings for each section for a entered condition">
+      <option name="closed" value="true" />
+      <created>1755475047260</created>
+      <option name="number" value="00005" />
+      <option name="presentableId" value="LOCAL-00005" />
+      <option name="project" value="LOCAL" />
+      <updated>1755475047276</updated>
+    </task>
+    <option name="localTasksCounter" value="6" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -200,10 +222,11 @@
     <MESSAGE value="base app works" />
     <MESSAGE value="ai enabled incorrectly" />
     <MESSAGE value="ai stored in a list yes or no to the effect, incorrect due to old ai and incorrect outputs" />
-    <option name="LAST_COMMIT_MESSAGE" value="ai stored in a list yes or no to the effect, incorrect due to old ai and incorrect outputs" />
+    <MESSAGE value="commit before parallelizing, asked ai to give ratings for each section for a entered condition" />
+    <option name="LAST_COMMIT_MESSAGE" value="commit before parallelizing, asked ai to give ratings for each section for a entered condition" />
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
-    <SUITE FILE_PATH="coverage/FlaskProject$app.coverage" NAME="app Coverage Results" MODIFIED="1755032701876" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/FlaskProject$app.coverage" NAME="app Coverage Results" MODIFIED="1755475819735" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/FlaskProject$testRand.coverage" NAME="testRand Coverage Results" MODIFIED="1755028186189" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
   </component>
 </project>
