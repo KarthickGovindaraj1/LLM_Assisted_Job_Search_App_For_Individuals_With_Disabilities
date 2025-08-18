@@ -228,7 +228,7 @@ def ask_gemini_skill_impact(user_desc: str, skill: str) -> Tuple[bool, float, st
 
     try:
         genai.configure(api_key=api_key)
-        model = genai.GenerativeModel("gemini-1.5-flash")
+        model = genai.GenerativeModel("gemini-2.5-pro")
         prompt = (
             "You are assessing whether a user's description affects their ability to perform a specific skill.\n\n"
             f"User description: ```{user_desc}```\n"
