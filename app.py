@@ -418,7 +418,7 @@ def user_Disabilities():
 
 # also use dropdown for list and severity
 # search for a specific job with inputs and seeing compatiility and any issues involved
-
+# job has to be assessed directly with users description, possibly in secondary weghting category
 if __name__ == '__main__':
     user_Disabilities()
     app.run(debug=True)
