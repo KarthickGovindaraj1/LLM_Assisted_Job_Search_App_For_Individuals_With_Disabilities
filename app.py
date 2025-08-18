@@ -156,7 +156,7 @@ def ask_gemini_skill_impact(user_desc: str, skill: str) -> Tuple[bool, float, st
 
     api_key = os.getenv("GEMINI_API_KEY")
     if not api_key:
-        return False, 0.0, "GEMINI_API_KEY environment variable is not set; cannot contact Gemini."
+        return (False, 0.0, "GEMINI_API_KEY environment variable is not set; cannot contact Gemini.")
 
     def _norm_sev(val) -> float:
         """Normalize severity input to [0,1]. Accepts number or LOW/MEDIUM/HIGH/VERY HIGH."""
