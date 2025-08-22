@@ -4,13 +4,11 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="5a9d1d9f-d33a-4575-98d4-724bdeda3423" name="Changes" comment="todo updated">
+    <list default="true" id="5a9d1d9f-d33a-4575-98d4-724bdeda3423" name="Changes" comment="OpenAI Access Implemented as well (no API credits)">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app.py" beforeDir="false" afterPath="$PROJECT_DIR$/app.py" afterDir="false" />
     </list>
-    <list id="de7c6fa4-bd8c-4e9e-8024-1787451cb3da" name="Changes by Leif" comment="">
-      <change beforePath="$PROJECT_DIR$/app.py" beforeDir="false" afterPath="$PROJECT_DIR$/app.py" afterDir="false" />
-    </list>
+    <list id="de7c6fa4-bd8c-4e9e-8024-1787451cb3da" name="Changes by Leif" comment="" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -37,18 +35,6 @@
   </component>
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
-  </component>
-  <component name="LineStatusTrackerManager">
-    <file path="$PROJECT_DIR$/app.py">
-      <ranges>
-        <range start1="3" end1="3" start2="3" end2="4" changelist="5a9d1d9f-d33a-4575-98d4-724bdeda3423" />
-        <range start1="185" end1="185" start2="186" end2="222" changelist="de7c6fa4-bd8c-4e9e-8024-1787451cb3da" />
-        <range start1="229" end1="231" start2="266" end2="266" changelist="de7c6fa4-bd8c-4e9e-8024-1787451cb3da" />
-        <range start1="239" end1="247" start2="274" end2="276" changelist="de7c6fa4-bd8c-4e9e-8024-1787451cb3da" />
-        <range start1="298" end1="298" start2="327" end2="328" changelist="de7c6fa4-bd8c-4e9e-8024-1787451cb3da" />
-        <range start1="300" end1="301" start2="330" end2="330" changelist="de7c6fa4-bd8c-4e9e-8024-1787451cb3da" />
-      </ranges>
-    </file>
   </component>
   <component name="ProblemsViewState">
     <option name="selectedTabId" value="CurrentFile" />
@@ -99,9 +85,9 @@
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
       <envs>
-        <env name="PYTHONUNBUFFERED" value="1" />
         <env name="GEMINI_API_KEY" value="AIzaSyBCOAE0dnaZAuKRPAl9fi4eVefHBBBuiLc" />
-        <env name="OPENAI_API_KEY" value="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" />
+        <env name="OPENAI_API_KEY" value="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" />
+        <env name="PYTHONUNBUFFERED" value="1" />
       </envs>
       <option name="SDK_HOME" value="" />
       <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
@@ -178,7 +164,7 @@
       <workItem from="1755791334037" duration="2463000" />
       <workItem from="1755805757509" duration="11022000" />
       <workItem from="1755837084170" duration="3108000" />
-      <workItem from="1755883899736" duration="2513000" />
+      <workItem from="1755883899736" duration="7255000" />
     </task>
     <task id="LOCAL-00001" summary="with submit button">
       <option name="closed" value="true" />
@@ -260,7 +246,15 @@
       <option name="project" value="LOCAL" />
       <updated>1755477921353</updated>
     </task>
-    <option name="localTasksCounter" value="11" />
+    <task id="LOCAL-00011" summary="OpenAI Access Implemented as well (no API credits)">
+      <option name="closed" value="true" />
+      <created>1755890406838</created>
+      <option name="number" value="00011" />
+      <option name="presentableId" value="LOCAL-00011" />
+      <option name="project" value="LOCAL" />
+      <updated>1755890406838</updated>
+    </task>
+    <option name="localTasksCounter" value="12" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -291,10 +285,11 @@
     <MESSAGE value="factored input into algorithm" />
     <MESSAGE value="used latest gemini model gemini-2.5-pro" />
     <MESSAGE value="todo updated" />
-    <option name="LAST_COMMIT_MESSAGE" value="todo updated" />
+    <MESSAGE value="OpenAI Access Implemented as well (no API credits)" />
+    <option name="LAST_COMMIT_MESSAGE" value="OpenAI Access Implemented as well (no API credits)" />
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
-    <SUITE FILE_PATH="coverage/FlaskProject$app.coverage" NAME="app Coverage Results" MODIFIED="1755723741546" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/FlaskProject$app.coverage" NAME="app Coverage Results" MODIFIED="1755895590433" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/FlaskProject$testRand.coverage" NAME="testRand Coverage Results" MODIFIED="1755028186189" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
   </component>
 </project>

@@ -186,60 +186,57 @@ def _compute_job_scores(user_scores: Dict[str, int], top_n: int = 25) -> List[Tu
 
 def ask_gemini(prompt):
     api_key = os.getenv("GEMINI_API_KEY")
-    if not api_key:
+    if not api_key or genai is None:
         return None
-    genai.configure(api_key=api_key)
-    model = genai.GenerativeModel("gemini-2.5-pro")
-    resp = model.generate_content(prompt)
-    text = getattr(resp, "text", None)
-    if not text:
-        # Fallback attempt to extract text if SDK exposes candidates
-        try:
-            text = resp.candidates[0].content.parts[0].text  # type: ignore[attr-defined]
-        except Exception:
-            text = ""
-    return text
+    try:
+        genai.configure(api_key=api_key)
+        model = genai.GenerativeModel("gemini-2.5-pro")
+        resp = model.generate_content(prompt)
+        text = getattr(resp, "text", None)
+        if not text:
+            # Fallback attempt to extract text if SDK exposes candidates
+            try:
+                text = resp.candidates[0].content.parts[0].text  # type: ignore[attr-defined]
+            except Exception:
+                text = ""
+        print("Gemini:", text)
+        return text
+    except Exception:
+        return None
 
 def ask_open_ai(prompt):
     api_key = os.getenv("OPENAI_API_KEY")
-    client = OpenAI(api_key=api_key)
-        # client.api_key = api_key
-
-    completion = client.chat.completions.create(
-        model="gpt-3.5-turbo",
-        messages=[
-            {"role": "system", "content": "You are helping the user decide if various conditions affect a skill/ability/job."},
-            {"role": "user", "content": prompt}
-        ]
-    )
-    print(completion.choices[0].message, "\n")
-    return completion.choices[0].message.content
+    if not api_key:
+        return None
+    try:
+        client = OpenAI(api_key=api_key)
+        model = os.getenv("OPENAI_MODEL", "gpt-3.5-turbo")
+        completion = client.chat.completions.create(
+            model=model,
+            messages=[
+                {"role": "system", "content": "You are helping the user decide if various conditions affect a skill/ability/job."},
+                {"role": "user", "content": prompt}
+            ]
+        )
+        print("OpenAI:", completion.choices[0].message.content)
+        return completion.choices[0].message.content
+    except Exception as e:
+        print(e)
+        return None
 
 
 # ask_gemini_skill_impact you could kind of clone for another LLM model.
 def ask_gemini_skill_impact(user_desc: str, skill: str) -> Tuple[bool, float, str]:
-    """Ask Gemini whether the user's description affects the specified skill and how severely.
+    """Ask both Gemini and OpenAI whether the user's description affects the specified skill and how severely.
 
     Returns (impacts_skill, severity_0to1, message) where:
     - impacts_skill is a boolean for YES/NO impact
-    - severity_0to1 is a float in [0.0, 1.0] representing severity of that YES/NO
+    - severity_0to1 is a float in [0.0, 1.0]
     - message includes a concise summary or error/explainer.
     """
     # Basic validation
     if not user_desc or not skill:
         return False, 0.0, "No description or skill provided; cannot assess."
-
-    # Ensure SDK is available
-    if genai is None:
-        return (
-            False,
-            0.0,
-            "Gemini client not available. Install 'google-generativeai' and set GEMINI_API_KEY to enable AI assessment.",
-        )
-
-    api_key = os.getenv("GEMINI_API_KEY")
-    if not api_key:
-        return (False, 0.0, "GEMINI_API_KEY environment variable is not set; cannot contact Gemini.")
 
     def _norm_sev(val) -> float:
         """Normalize severity input to [0,1]. Accepts number or LOW/MEDIUM/HIGH/VERY HIGH."""
@@ -269,61 +266,102 @@ def ask_gemini_skill_impact(user_desc: str, skill: str) -> Tuple[bool, float, st
             "{\n  \"impacts_skill\": \"YES\" or \"NO\",\n  \"severity\": a number from 0 to 1 (0=no severity, 1=maximum),\n  \"reason\": \"a one-sentence brief rationale\"\n}\n"
             "Only return JSON."
         )
-        # text = ask_gemini(prompt)
-        text = ask_open_ai(prompt)
 
-        # Try to parse JSON from response
+        # Query both models if available
+        text_g = ask_gemini(prompt)
+        text_o = ask_open_ai(prompt)
+
         import re, json  # local import to keep globals minimal
 
-        impacts: bool = False
-        severity: float = 0.0
-        msg: str = text.strip() if isinstance(text, str) else ""
+        def _parse_response(text: str) -> Tuple[bool, float, str, bool]:
+            """Parse a model response into (impacts, severity, message, ok). ok=False if no usable content."""
+            if not text:
+                return False, 0.0, "", False
+            impacts: bool = False
+            severity: float = 0.0
+            msg: str = text.strip() if isinstance(text, str) else ""
 
-        match = re.search(r"\{.*\}", text or "", re.DOTALL)
-        if match:
-            try:
-                obj = json.loads(match.group(0))
-                val = str(obj.get("impacts_skill", "")).strip().upper()
-                impacts = val.startswith("Y")
-                severity = _norm_sev(obj.get("severity", 0.0))
-                reason = obj.get("reason") or ""
-                msg = f"{'YES' if impacts else 'NO'} ({severity:.2f}) - {reason}".strip()
-                return impacts, severity, msg
-            except Exception:
-                pass
+            match = re.search(r"\{.*\}", text or "", re.DOTALL)
+            if match:
+                try:
+                    obj = json.loads(match.group(0))
+                    val = str(obj.get("impacts_skill", "")).strip().upper()
+                    impacts = val.startswith("Y")
+                    severity = _norm_sev(obj.get("severity", 0.0))
+                    reason = obj.get("reason") or ""
+                    msg = f"{'YES' if impacts else 'NO'} ({severity:.2f}) - {reason}".strip()
+                    return impacts, severity, msg, True
+                except Exception:
+                    pass
 
-        # Fallback: simple heuristic from plain text
-        upper = (text or "").upper()
-        if "YES" in upper and "NO" not in upper:
-            impacts = True
-        elif "NO" in upper and "YES" not in upper:
-            impacts = False
-        else:
-            impacts = False
-        # Attempt to detect a number 0..1 in the text
-        try:
-            nums = [float(n) for n in re.findall(r"0?\.\d+|1\.0+|1\b", text or "")]
-            if nums:
-                severity = max(0.0, min(1.0, max(nums)))
+            upper = (text or "").upper()
+            if "YES" in upper and "NO" not in upper:
+                impacts = True
+            elif "NO" in upper and "YES" not in upper:
+                impacts = False
             else:
-                # Map simple qualifiers
-                if any(k in upper for k in ["VERY HIGH", "VH"]):
-                    severity = 0.9
-                elif "HIGH" in upper:
-                    severity = 0.75
-                elif "MEDIUM" in upper or "MODERATE" in upper:
-                    severity = 0.5
-                elif "LOW" in upper:
-                    severity = 0.25
+                # ambiguous
+                return False, 0.0, msg or "", False
+            try:
+                nums = [float(n) for n in re.findall(r"0?\.\d+|1\.0+|1\b", text or "")]
+                if nums:
+                    severity = max(0.0, min(1.0, max(nums)))
                 else:
-                    severity = 0.0
-        except Exception:
-            severity = 0.0
-        return impacts, severity, (msg or "No response from Gemini.")
+                    if any(k in upper for k in ["VERY HIGH", "VH"]):
+                        severity = 0.9
+                    elif "HIGH" in upper:
+                        severity = 0.75
+                    elif "MEDIUM" in upper or "MODERATE" in upper:
+                        severity = 0.5
+                    elif "LOW" in upper:
+                        severity = 0.25
+                    else:
+                        severity = 0.0
+            except Exception:
+                severity = 0.0
+            return impacts, severity, msg or "", True
+
+        g_ok = False
+        o_ok = False
+        g_imp = False
+        o_imp = False
+        g_sev = 0.0
+        o_sev = 0.0
+        g_msg = ""
+        o_msg = ""
+
+        if text_g is not None:
+            g_imp, g_sev, g_msg, g_ok = _parse_response(text_g)
+        if text_o is not None:
+            o_imp, o_sev, o_msg, o_ok = _parse_response(text_o)
+
+        # No responses
+        if not g_ok and not o_ok:
+            backend_info = []
+            if text_g is None:
+                backend_info.append("Gemini: unavailable")
+            if text_o is None:
+                backend_info.append("OpenAI: unavailable")
+            hint = "; ".join(backend_info) or "Both models returned empty responses."
+            return False, 0.0, f"No usable response from either model. {hint}"
+
+        # Only one usable
+        if g_ok and not o_ok:
+            return g_imp, g_sev, f"Gemini: {g_msg or ('YES' if g_imp else 'NO')}"
+        if o_ok and not g_ok:
+            return o_imp, o_sev, f"OpenAI: {o_msg or ('YES' if o_imp else 'NO')}"
+
+        # Both usable -> reconcile
+        if g_imp == o_imp:
+            avg_sev = max(0.0, min(1.0, (g_sev + o_sev) / 2.0))
+            agree = "YES" if g_imp else "NO"
+            return g_imp, avg_sev, f"Agree: {agree} (avg severity {avg_sev:.2f}). Gemini: {g_msg}; OpenAI: {o_msg}"
+        else:
+            return False, 0.0, f"Disagree: Gemini says {'YES' if g_imp else 'NO'}, OpenAI says {'YES' if o_imp else 'NO'}. Gemini: {g_msg}; OpenAI: {o_msg}"
 
     except Exception as e:
         print(e)
-        return False, 0.0, f"Error calling Gemini: {e}"
+        return False, 0.0, f"Error assessing via AI: {e}"
 
 @app.route('/', methods=['GET', 'POST'])
 def skill_sliders():
@@ -445,6 +483,9 @@ def user_Disabilities():
 # also use dropdown for list and severity
 # search for a specific job with inputs and seeing compatiility and any issues involved
 # job has to be assessed directly with users description, possibly in secondary weghting category
+# if it retuns above if there is high severity and no, check again, default to high if no change, also default to higher severity if there is both yes, if both no, reutnrn, if theres low and no, default t low, if mild and no affect, leave it mild
+
+
 if __name__ == '__main__':
     user_Disabilities()
     app.run(debug=True)
