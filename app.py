@@ -1,6 +1,7 @@
 # C:/Users/karth/PycharmProjects/FlaskProject/app.py
 from flask import Flask, render_template, request
 import pandas as pd
+from openai import OpenAI
 from typing import Dict, List, Tuple
 import os
 
@@ -183,6 +184,39 @@ def _compute_job_scores(user_scores: Dict[str, int], top_n: int = 25) -> List[Tu
     return results[:top_n]
 
 
+def ask_gemini(prompt):
+    api_key = os.getenv("GEMINI_API_KEY")
+    if not api_key:
+        return None
+    genai.configure(api_key=api_key)
+    model = genai.GenerativeModel("gemini-2.5-pro")
+    resp = model.generate_content(prompt)
+    text = getattr(resp, "text", None)
+    if not text:
+        # Fallback attempt to extract text if SDK exposes candidates
+        try:
+            text = resp.candidates[0].content.parts[0].text  # type: ignore[attr-defined]
+        except Exception:
+            text = ""
+    return text
+
+def ask_open_ai(prompt):
+    api_key = os.getenv("OPENAI_API_KEY")
+    client = OpenAI(api_key=api_key)
+        # client.api_key = api_key
+
+    completion = client.chat.completions.create(
+        model="gpt-3.5-turbo",
+        messages=[
+            {"role": "system", "content": "You are helping the user decide if various conditions affect a skill/ability/job."},
+            {"role": "user", "content": prompt}
+        ]
+    )
+    print(completion.choices[0].message, "\n")
+    return completion.choices[0].message.content
+
+
+# ask_gemini_skill_impact you could kind of clone for another LLM model.
 def ask_gemini_skill_impact(user_desc: str, skill: str) -> Tuple[bool, float, str]:
     """Ask Gemini whether the user's description affects the specified skill and how severely.
 
@@ -227,8 +261,6 @@ def ask_gemini_skill_impact(user_desc: str, skill: str) -> Tuple[bool, float, st
             return 0.0
 
     try:
-        genai.configure(api_key=api_key)
-        model = genai.GenerativeModel("gemini-2.5-pro")
         prompt = (
             "You are assessing whether a user's description affects their ability to perform a specific skill.\n\n"
             f"User description: ```{user_desc}```\n"
@@ -237,14 +269,8 @@ def ask_gemini_skill_impact(user_desc: str, skill: str) -> Tuple[bool, float, st
             "{\n  \"impacts_skill\": \"YES\" or \"NO\",\n  \"severity\": a number from 0 to 1 (0=no severity, 1=maximum),\n  \"reason\": \"a one-sentence brief rationale\"\n}\n"
             "Only return JSON."
         )
-        resp = model.generate_content(prompt)
-        text = getattr(resp, "text", None)
-        if not text:
-            # Fallback attempt to extract text if SDK exposes candidates
-            try:
-                text = resp.candidates[0].content.parts[0].text  # type: ignore[attr-defined]
-            except Exception:
-                text = ""
+        # text = ask_gemini(prompt)
+        text = ask_open_ai(prompt)
 
         # Try to parse JSON from response
         import re, json  # local import to keep globals minimal
@@ -296,8 +322,8 @@ def ask_gemini_skill_impact(user_desc: str, skill: str) -> Tuple[bool, float, st
         return impacts, severity, (msg or "No response from Gemini.")
 
     except Exception as e:
+        print(e)
         return False, 0.0, f"Error calling Gemini: {e}"
-
 
 @app.route('/', methods=['GET', 'POST'])
 def skill_sliders():

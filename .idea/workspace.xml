@@ -4,8 +4,11 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="5a9d1d9f-d33a-4575-98d4-724bdeda3423" name="Changes" comment="factored input into algorithm">
+    <list default="true" id="5a9d1d9f-d33a-4575-98d4-724bdeda3423" name="Changes" comment="todo updated">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app.py" beforeDir="false" afterPath="$PROJECT_DIR$/app.py" afterDir="false" />
+    </list>
+    <list id="de7c6fa4-bd8c-4e9e-8024-1787451cb3da" name="Changes by Leif" comment="">
       <change beforePath="$PROJECT_DIR$/app.py" beforeDir="false" afterPath="$PROJECT_DIR$/app.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -35,6 +38,18 @@
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
+  <component name="LineStatusTrackerManager">
+    <file path="$PROJECT_DIR$/app.py">
+      <ranges>
+        <range start1="3" end1="3" start2="3" end2="4" changelist="5a9d1d9f-d33a-4575-98d4-724bdeda3423" />
+        <range start1="185" end1="185" start2="186" end2="222" changelist="de7c6fa4-bd8c-4e9e-8024-1787451cb3da" />
+        <range start1="229" end1="231" start2="266" end2="266" changelist="de7c6fa4-bd8c-4e9e-8024-1787451cb3da" />
+        <range start1="239" end1="247" start2="274" end2="276" changelist="de7c6fa4-bd8c-4e9e-8024-1787451cb3da" />
+        <range start1="298" end1="298" start2="327" end2="328" changelist="de7c6fa4-bd8c-4e9e-8024-1787451cb3da" />
+        <range start1="300" end1="301" start2="330" end2="330" changelist="de7c6fa4-bd8c-4e9e-8024-1787451cb3da" />
+      </ranges>
+    </file>
+  </component>
   <component name="ProblemsViewState">
     <option name="selectedTabId" value="CurrentFile" />
   </component>
@@ -46,32 +61,32 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "JavaScript Debug.index.html.executor": "Run",
-    "ModuleVcsDetector.initialDetectionPerformed": "true",
-    "Python.app.executor": "Run",
-    "Python.testRand.executor": "Run",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "RunOnceActivity.git.unshallow": "true",
-    "dart.analysis.tool.window.visible": "false",
-    "git-widget-placeholder": "master",
-    "ignore.virus.scanning.warn.message": "true",
-    "junie.onboarding.icon.badge.shown": "true",
-    "last_opened_file_path": "C:/Users/karth/PycharmProjects/FlaskProject/static",
-    "node.js.detected.package.eslint": "true",
-    "node.js.detected.package.tslint": "true",
-    "node.js.selected.package.eslint": "(autodetect)",
-    "node.js.selected.package.tslint": "(autodetect)",
-    "nodejs_package_manager_path": "npm",
-    "settings.editor.selected.configurable": "junie.application.models",
-    "to.speed.mode.migration.done": "true",
-    "vue.rearranger.settings.migration": "true"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;JavaScript Debug.index.html.executor&quot;: &quot;Run&quot;,
+    &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
+    &quot;Python.app.executor&quot;: &quot;Run&quot;,
+    &quot;Python.testRand.executor&quot;: &quot;Run&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
+    &quot;dart.analysis.tool.window.visible&quot;: &quot;false&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;master&quot;,
+    &quot;ignore.virus.scanning.warn.message&quot;: &quot;true&quot;,
+    &quot;junie.onboarding.icon.badge.shown&quot;: &quot;true&quot;,
+    &quot;last_opened_file_path&quot;: &quot;C:/Users/karth/PycharmProjects/FlaskProject/static&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;junie.application.models&quot;,
+    &quot;to.speed.mode.migration.done&quot;: &quot;true&quot;,
+    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   },
-  "keyToStringList": {
-    "stardust.markdown.MarkdownSplitEditorSuppressor:keyList": []
+  &quot;keyToStringList&quot;: {
+    &quot;stardust.markdown.MarkdownSplitEditorSuppressor:keyList&quot;: []
   }
-}]]></component>
+}</component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
       <recent name="C:\Users\karth\PycharmProjects\FlaskProject\static" />
@@ -84,8 +99,8 @@
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
       <envs>
-        <env name="GEMINI_API_KEY" value="AIzaSyBCOAE0dnaZAuKRPAl9fi4eVefHBBBuiLc" />
         <env name="PYTHONUNBUFFERED" value="1" />
+        <env name="GEMINI_API_KEY" value="AIzaSyBCOAE0dnaZAuKRPAl9fi4eVefHBBBuiLc" />
         <env name="OPENAI_API_KEY" value="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" />
       </envs>
       <option name="SDK_HOME" value="" />
@@ -147,7 +162,23 @@
       <workItem from="1755209976501" duration="6982000" />
       <workItem from="1755228095833" duration="6145000" />
       <workItem from="1755314248454" duration="22674000" />
-      <workItem from="1755464727360" duration="4428000" />
+      <workItem from="1755464727360" duration="5674000" />
+      <workItem from="1755490778872" duration="317000" />
+      <workItem from="1755492271720" duration="4953000" />
+      <workItem from="1755539212370" duration="4134000" />
+      <workItem from="1755574174905" duration="555000" />
+      <workItem from="1755576262698" duration="2668000" />
+      <workItem from="1755629072460" duration="7425000" />
+      <workItem from="1755659882379" duration="263000" />
+      <workItem from="1755663266453" duration="4303000" />
+      <workItem from="1755709397907" duration="4836000" />
+      <workItem from="1755729933470" duration="498000" />
+      <workItem from="1755740929969" duration="3278000" />
+      <workItem from="1755756658875" duration="4839000" />
+      <workItem from="1755791334037" duration="2463000" />
+      <workItem from="1755805757509" duration="11022000" />
+      <workItem from="1755837084170" duration="3108000" />
+      <workItem from="1755883899736" duration="2513000" />
     </task>
     <task id="LOCAL-00001" summary="with submit button">
       <option name="closed" value="true" />
@@ -213,7 +244,23 @@
       <option name="project" value="LOCAL" />
       <updated>1755477008289</updated>
     </task>
-    <option name="localTasksCounter" value="9" />
+    <task id="LOCAL-00009" summary="used latest gemini model gemini-2.5-pro">
+      <option name="closed" value="true" />
+      <created>1755477658312</created>
+      <option name="number" value="00009" />
+      <option name="presentableId" value="LOCAL-00009" />
+      <option name="project" value="LOCAL" />
+      <updated>1755477658312</updated>
+    </task>
+    <task id="LOCAL-00010" summary="todo updated">
+      <option name="closed" value="true" />
+      <created>1755477921353</created>
+      <option name="number" value="00010" />
+      <option name="presentableId" value="LOCAL-00010" />
+      <option name="project" value="LOCAL" />
+      <updated>1755477921353</updated>
+    </task>
+    <option name="localTasksCounter" value="11" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -242,10 +289,12 @@
     <MESSAGE value="fixed error in api request" />
     <MESSAGE value="Changes by Leif" />
     <MESSAGE value="factored input into algorithm" />
-    <option name="LAST_COMMIT_MESSAGE" value="factored input into algorithm" />
+    <MESSAGE value="used latest gemini model gemini-2.5-pro" />
+    <MESSAGE value="todo updated" />
+    <option name="LAST_COMMIT_MESSAGE" value="todo updated" />
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
-    <SUITE FILE_PATH="coverage/FlaskProject$app.coverage" NAME="app Coverage Results" MODIFIED="1755477369542" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/FlaskProject$app.coverage" NAME="app Coverage Results" MODIFIED="1755723741546" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/FlaskProject$testRand.coverage" NAME="testRand Coverage Results" MODIFIED="1755028186189" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
   </component>
 </project>
