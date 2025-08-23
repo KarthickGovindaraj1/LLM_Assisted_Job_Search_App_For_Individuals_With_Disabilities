@@ -292,6 +292,7 @@ def ask_gemini_skill_impact(user_desc: str, skill: str) -> Tuple[bool, float, st
                 return 0.5
             if s in ("HIGH", "H", "SEVERE", "VERY HIGH", "VERY_HIGH", "VERYHIGH", "VH", "UNSUITABLE", "COMPLETELY UNSUITABLE"):
                 return 1.0
+
             return 0.0
 
     try:
