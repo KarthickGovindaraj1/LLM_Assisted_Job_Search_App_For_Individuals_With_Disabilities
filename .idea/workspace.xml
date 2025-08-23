@@ -4,7 +4,10 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="5a9d1d9f-d33a-4575-98d4-724bdeda3423" name="Changes" comment="scale modified&#10;change the severity ranking, scales, and algormith match to how severe would the conditon be so where 0 is no impact on job suitability, 0.5 is moderate impact on suitability for job, and 1 is completely unsutable for the job&#10;with that prompt&#10;issue: the ai only returns 0, 0.5, and 1 now, fix" />
+    <list default="true" id="5a9d1d9f-d33a-4575-98d4-724bdeda3423" name="Changes" comment="ai response has been changed from a discrete scale to a continuous one">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app.py" beforeDir="false" afterPath="$PROJECT_DIR$/app.py" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -160,7 +163,7 @@
       <workItem from="1755791334037" duration="2463000" />
       <workItem from="1755805757509" duration="11022000" />
       <workItem from="1755837084170" duration="3108000" />
-      <workItem from="1755883899736" duration="20350000" />
+      <workItem from="1755883899736" duration="23429000" />
     </task>
     <task id="LOCAL-00001" summary="with submit button">
       <option name="closed" value="true" />
@@ -274,7 +277,15 @@
       <option name="project" value="LOCAL" />
       <updated>1755928589367</updated>
     </task>
-    <option name="localTasksCounter" value="15" />
+    <task id="LOCAL-00015" summary="ai response has been changed from a discrete scale to a continuous one">
+      <option name="closed" value="true" />
+      <created>1755929003214</created>
+      <option name="number" value="00015" />
+      <option name="presentableId" value="LOCAL-00015" />
+      <option name="project" value="LOCAL" />
+      <updated>1755929003215</updated>
+    </task>
+    <option name="localTasksCounter" value="16" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -309,10 +320,11 @@
     <MESSAGE value="both ais working, cross comparison is active but not implemented correctly at all, severity ratings  matching not correct" />
     <MESSAGE value="scale modified&#10;change the severity ranking, scales, and algormith match to how severe would the conditon be so where 0 is no impact on job suitability, 0.5 is moderate impact on suitability for job, and 1 is completely unsutable for the job&#10;with that prompt" />
     <MESSAGE value="scale modified&#10;change the severity ranking, scales, and algormith match to how severe would the conditon be so where 0 is no impact on job suitability, 0.5 is moderate impact on suitability for job, and 1 is completely unsutable for the job&#10;with that prompt&#10;issue: the ai only returns 0, 0.5, and 1 now, fix" />
-    <option name="LAST_COMMIT_MESSAGE" value="scale modified&#10;change the severity ranking, scales, and algormith match to how severe would the conditon be so where 0 is no impact on job suitability, 0.5 is moderate impact on suitability for job, and 1 is completely unsutable for the job&#10;with that prompt&#10;issue: the ai only returns 0, 0.5, and 1 now, fix" />
+    <MESSAGE value="ai response has been changed from a discrete scale to a continuous one" />
+    <option name="LAST_COMMIT_MESSAGE" value="ai response has been changed from a discrete scale to a continuous one" />
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
-    <SUITE FILE_PATH="coverage/FlaskProject$app.coverage" NAME="app Coverage Results" MODIFIED="1755897669512" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/FlaskProject$app.coverage" NAME="app Coverage Results" MODIFIED="1755931867288" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/FlaskProject$testRand.coverage" NAME="testRand Coverage Results" MODIFIED="1755028186189" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
   </component>
 </project>

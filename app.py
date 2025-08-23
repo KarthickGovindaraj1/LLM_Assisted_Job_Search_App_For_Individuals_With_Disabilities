@@ -255,12 +255,12 @@ def ask_open_ai(prompt):
 
 # ask_gemini_skill_impact you could kind of clone for another LLM model.
 def ask_gemini_skill_impact(user_desc: str, skill: str) -> Tuple[bool, float, str]:
-    """Ask both Gemini and OpenAI whether the user's description affects the specified skill and how severely.
+    """Ask AI whether a user's condition terminally affects their ability to perform a skill.
 
-    Severity is on a continuous scale from 0.0 to 1.0:
-    - 0.0 = no impact on job suitability
-    - 0.5 = moderate impact on suitability for job
-    - 1.0 = completely unsuitable for the job
+    The severity score is based on the terminal inability to perform the job, not just discomfort.
+    - 1.0: Terminally unable to perform the skill for the job.
+    - 0.0: No impact on the ability to perform the skill.
+    The score should only reflect inability, not discomfort if they can still perform the skill.
 
     Returns (impacts_skill, severity_0to1, message) where:
     - impacts_skill is a boolean for YES/NO impact
@@ -294,11 +294,14 @@ def ask_gemini_skill_impact(user_desc: str, skill: str) -> Tuple[bool, float, st
 
     try:
         prompt = (
-            "You are assessing whether a user's description affects their ability to perform a specific skill.\n\n"
+            "You are assessing whether a user's description affects their ability to perform a specific skill for a job. "
+            "Your assessment must focus on whether the condition makes them unable to perform the skill, not just cause discomfort.\n\n"
             f"User description: ```{user_desc}```\n"
             f"Skill to assess: \"{skill}\"\n\n"
             "Respond strictly in JSON with three fields only: \n"
-            "{\n  \"impacts_skill\": \"YES\" or \"NO\",\n  \"severity\": a float from 0.0 to 1.0 (0.0 = no impact on job suitability, 1.0 = completely unsuitable for the job),\n  \"reason\": \"a one-sentence brief rationale\"\n}\n"
+            "{\n  \"impacts_skill\": \"YES\" or \"NO\",\n"
+            "  \"severity\": a float from 0.0 to 1.0, where 1.0 means the user is terminally unable to perform the skill for the job, and 0.0 means there is no impact on their ability. The score should only reflect inability, not discomfort if they can still perform the skill.,\n"
+            "  \"reason\": \"a one-sentence brief rationale\"\n}\n"
             "Rules: If severity > 0 then impacts_skill must be \"YES\"; if severity == 0 then impacts_skill must be \"NO\".\n"
             "Only return the JSON object."
         )
