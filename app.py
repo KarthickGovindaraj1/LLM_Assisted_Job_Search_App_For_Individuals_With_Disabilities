@@ -23,7 +23,7 @@ _TITLE_SKILL_IMPORTANCE: Dict[str, Dict[str, float]] = {}
 userDescImpactsYN: List[str] = []
 # New: per-skill severity aligned with _UNIQUE_SKILLS order.
 # Values are floats in [0, 1], where:
-# 0 = no impact on job suitability; 0.5 = moderate impact on job suitability; 1 = completely unsuitable for the job.
+# 0 = no impact on job suitability; 1 = completely unsuitable for the job.
 userDescSeverity: List[float] = []
 
 
@@ -91,15 +91,11 @@ def _load_skills_cache() -> None:
 def _build_skill_impact_factor_map(skills: List[str]) -> Dict[str, float]:
     """Return a mapping skill -> factor adjusted by user-described impact severity.
 
-    Severity scale and semantics (job suitability):
-    - 0   = no impact on job suitability
-    - 0.5 = moderate impact on suitability for job
-    - 1   = completely unsuitable for the job
+    Severity is on a continuous scale from 0.0 to 1.0:
+    - 0.0 = no impact on job suitability
+    - 1.0 = completely unsuitable for the job
 
-    Factor applied to user rating r is (1 - severity), so:
-    - severity 0   -> factor 1.0 (no reduction)
-    - severity 0.5 -> factor 0.5
-    - severity 1   -> factor 0.0 (skill contribution removed)
+    Factor applied to user rating r is (1 - severity).
 
     Fallback: if per-skill severities are not available, use YES/NO flags with
     IMPACT_YES_FACTOR (env; default 0.6) for YES and 1.0 for NO.
@@ -172,7 +168,7 @@ def _compute_job_scores(user_scores: Dict[str, int], top_n: int = 25) -> List[Tu
     - user_scores: raw slider ratings per skill (0–7 scale).
     - Uses importance weights per title (normalized 0–1) from Skills.xlsx (Scale ID == 'IM'), ignoring Not Relevant.
     - Applies a per-skill factor derived from user-described impact severity if available: factor = 1 - severity,
-      where severity ∈ {0, 0.5, 1} denotes job suitability impact (0=no impact, 0.5=moderate, 1=unsuitable).
+      where severity is a float from 0.0 to 1.0 denoting job suitability impact (0=no impact, 1=unsuitable).
       Falls back to YES/NO impacts with IMPACT_YES_FACTOR (env; default 0.6) when severities are unavailable.
     - Score per title = sum(w * (r * factor)) / sum(w), where r is user rating normalized to 0–1.
     """
@@ -261,38 +257,39 @@ def ask_open_ai(prompt):
 def ask_gemini_skill_impact(user_desc: str, skill: str) -> Tuple[bool, float, str]:
     """Ask both Gemini and OpenAI whether the user's description affects the specified skill and how severely.
 
-    Severity semantics are aligned to job suitability and MUST be one of {0, 0.5, 1}:
-    - 0   = no impact on job suitability
+    Severity is on a continuous scale from 0.0 to 1.0:
+    - 0.0 = no impact on job suitability
     - 0.5 = moderate impact on suitability for job
-    - 1   = completely unsuitable for the job
+    - 1.0 = completely unsuitable for the job
 
     Returns (impacts_skill, severity_0to1, message) where:
     - impacts_skill is a boolean for YES/NO impact
-    - severity_0to1 is a float in {0.0, 0.5, 1.0}
+    - severity_0to1 is a float in [0.0, 1.0]
     - message includes a concise summary or error/explainer.
     """
     # Basic validation
     if not user_desc or not skill:
         return False, 0.0, "No description or skill provided; cannot assess."
 
-    def _norm_sev(val) -> float:
-        """Normalize severity to tri-level {0, 0.5, 1} representing job suitability impact."""
+    def _parse_severity(val) -> float:
+        """Parse severity from model output to a float between 0.0 and 1.0."""
         try:
             f = float(val)
-            if f != f:  # NaN
+            if f != f:  # NaN guard
                 return 0.0
-            f = max(0.0, min(1.0, f))
-            # Quantize to nearest of {0, 0.5, 1}
-            return min([0.0, 0.5, 1.0], key=lambda x: abs(x - f))
-        except Exception:
+            return max(0.0, min(1.0, f))  # Clamp to [0, 1]
+        except (ValueError, TypeError):
             s = str(val).strip().upper()
             if s in ("NONE", "NO", "NO IMPACT", "NOT IMPACTED"):
                 return 0.0
-            if s in ("LOW", "L", "MILD", "MINOR", "SLIGHT", "MEDIUM", "MID", "M", "MODERATE"):
+            if s in ("LOW", "L", "MILD", "MINOR", "SLIGHT"):
+                return 0.25
+            if s in ("MEDIUM", "MID", "M", "MODERATE"):
                 return 0.5
-            if s in ("HIGH", "H", "SEVERE", "VERY HIGH", "VERY_HIGH", "VERYHIGH", "VH", "UNSUITABLE", "COMPLETELY UNSUITABLE"):
+            if s in ("HIGH", "H", "SEVERE"):
+                return 0.75
+            if s in ("VERY HIGH", "VERY_HIGH", "VERYHIGH", "VH", "UNSUITABLE", "COMPLETELY UNSUITABLE"):
                 return 1.0
-
             return 0.0
 
     try:
@@ -301,7 +298,7 @@ def ask_gemini_skill_impact(user_desc: str, skill: str) -> Tuple[bool, float, st
             f"User description: ```{user_desc}```\n"
             f"Skill to assess: \"{skill}\"\n\n"
             "Respond strictly in JSON with three fields only: \n"
-            "{\n  \"impacts_skill\": \"YES\" or \"NO\",\n  \"severity\": one of 0, 0.5, or 1 (0 = no impact on job suitability, 0.5 = moderate impact, 1 = completely unsuitable),\n  \"reason\": \"a one-sentence brief rationale\"\n}\n"
+            "{\n  \"impacts_skill\": \"YES\" or \"NO\",\n  \"severity\": a float from 0.0 to 1.0 (0.0 = no impact on job suitability, 1.0 = completely unsuitable for the job),\n  \"reason\": \"a one-sentence brief rationale\"\n}\n"
             "Rules: If severity > 0 then impacts_skill must be \"YES\"; if severity == 0 then impacts_skill must be \"NO\".\n"
             "Only return the JSON object."
         )
@@ -326,7 +323,7 @@ def ask_gemini_skill_impact(user_desc: str, skill: str) -> Tuple[bool, float, st
                     obj = json.loads(match.group(0))
                     val = str(obj.get("impacts_skill", "")).strip().upper()
                     impacts = val.startswith("Y")
-                    severity = _norm_sev(obj.get("severity", 0.0))
+                    severity = _parse_severity(obj.get("severity", 0.0))
                     # Enforce consistency with severity scale: impacts iff severity > 0
                     impacts = (severity > 0)
                     reason = obj.get("reason") or ""
@@ -346,17 +343,17 @@ def ask_gemini_skill_impact(user_desc: str, skill: str) -> Tuple[bool, float, st
             try:
                 nums = [float(n) for n in re.findall(r"0?\.\d+|1\.0+|1\b", text or "")]
                 if nums:
-                    # Quantize any numeric to nearest of {0, 0.5, 1}
-                    severity = _norm_sev(max(nums))
+                    # Use the parsed number, clamped to [0,1]
+                    severity = _parse_severity(max(nums))
                 else:
                     if any(k in upper for k in ["UNSUITABLE", "COMPLETELY UNSUITABLE", "VERY HIGH", "VH"]):
                         severity = 1.0
                     elif ("HIGH" in upper) or ("SEVERE" in upper):
-                        severity = 1.0
+                        severity = 0.75
                     elif ("MEDIUM" in upper) or ("MODERATE" in upper) or ("MILD" in upper):
                         severity = 0.5
                     elif ("LOW" in upper) or ("NO IMPACT" in upper) or ("NONE" in upper):
-                        severity = 0.0
+                        severity = 0.25
                     else:
                         severity = 0.0
             except Exception:
@@ -397,12 +394,14 @@ def ask_gemini_skill_impact(user_desc: str, skill: str) -> Tuple[bool, float, st
 
         # Both usable -> reconcile
         if g_imp == o_imp:
-            avg_sev_raw = max(0.0, min(1.0, (g_sev + o_sev) / 2.0))
-            avg_sev = _norm_sev(avg_sev_raw)
+            avg_sev = max(0.0, min(1.0, (g_sev + o_sev) / 2.0))
             agree = "YES" if g_imp else "NO"
             return g_imp, avg_sev, f"Agree: {agree} (avg severity {avg_sev:.2f}). Gemini: {g_msg}; OpenAI: {o_msg}"
         else:
-            return False, 0.0, f"Disagree: Gemini says {'YES' if g_imp else 'NO'}, OpenAI says {'YES' if o_imp else 'NO'}. Gemini: {g_msg}; OpenAI: {o_msg}"
+            # If they disagree on impact, default to higher severity
+            final_sev = max(g_sev, o_sev)
+            final_imp = final_sev > 0
+            return final_imp, final_sev, f"Disagree: Gemini says {'YES' if g_imp else 'NO'} ({g_sev:.2f}), OpenAI says {'YES' if o_imp else 'NO'} ({o_sev:.2f}). Defaulting to higher severity."
 
     except Exception as e:
         print(e)
@@ -450,7 +449,7 @@ def skill_sliders():
 def user_Disabilities():
     """Prompt for a description, then ask LLMs for EVERY skill; store severity and YES/NO per skill.
 
-    Severity scale aligned to job suitability: 0=no impact, 0.5=moderate impact, 1=completely unsuitable.
+    Severity is on a continuous scale from 0.0 to 1.0 (0=no impact, 1=unsuitable).
     Parallelizes LLM requests to speed up processing while preserving the original order of skills.
     Configure concurrency with env var LLM_MAX_WORKERS (default 5). Falls back to sequential if needed.
     """
@@ -541,7 +540,7 @@ def user_Disabilities():
     print(f"Collected AI YES/NO impacts for {len(skills)} skills into userDescImpactsYN.")
     print(userDescImpactsYN)  # parallelize llm requests for speed
     try:
-        print("Collected per-skill severities (0=no impact, 0.5=moderate, 1=unsuitable):")
+        print("Collected per-skill severities (0=no impact, 1=unsuitable):")
         print(userDescSeverity)
     except Exception:
         pass
