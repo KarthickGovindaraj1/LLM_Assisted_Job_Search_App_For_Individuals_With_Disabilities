@@ -1,4 +1,4 @@
-# C:/Users/karth/PycharmProjects/FlaskProject/app.py
+# C:/Users/karth/PychymProjects/FlaskProject/app.py
 from flask import Flask, render_template, request
 import pandas as pd
 from openai import OpenAI
