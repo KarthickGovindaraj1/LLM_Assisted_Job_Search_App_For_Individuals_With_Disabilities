@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Skill Sliders</title>
+    <title>Skill-Based Job Matcher</title>
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
@@ -29,7 +29,29 @@
         .info {
             text-align: center;
             color: #555;
-            margin-bottom: 1rem;
+            margin-bottom: 2rem;
+        }
+        .description-group {
+            margin-bottom: 2rem;
+        }
+        .description-group label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+        textarea {
+            width: 100%;
+            padding: 0.75rem;
+            border-radius: 6px;
+            border: 1px solid #ccc;
+            font-family: inherit;
+            font-size: 1rem;
+            box-sizing: border-box; /* Ensures padding doesn't affect width */
+        }
+        .description-group p {
+            font-size: 0.85rem;
+            color: #666;
+            margin-top: 0.5rem;
         }
         .slider-group {
             margin-bottom: 1rem;
@@ -82,36 +104,50 @@
             text-align: right;
         }
         .actions {
-            margin-top: 1rem;
+            margin-top: 2rem;
             text-align: center;
         }
         button {
             background: #007bff;
             color: white;
             border: none;
-            padding: 0.6rem 1rem;
+            padding: 0.8rem 1.5rem;
             border-radius: 6px;
             cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
         }
         button:hover { background: #0065d1; }
         .results {
             margin-top: 2rem;
         }
-        .results h2 { margin-bottom: 0.5rem; }
+        .results h2 { margin-bottom: 1rem; }
+        .results ol { padding-left: 20px; }
+        .results li { margin-bottom: 0.5rem; }
         .muted { color: #777; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h1>O*NET Skill Ratings</h1>
+    <h1>Skill-Based Job Matcher</h1>
     {% if submitted_message %}
-      <p class="info">{{ submitted_message }}</p>
+      <p class="info"><strong>{{ submitted_message }}</strong></p>
     {% else %}
-      <p class="info">Adjust sliders to rate your proficiency (0–7). Submit to see best-matching job titles based on O*NET skill importance.</p>
+      <p class="info">Rate your skills and provide a condition description to find jobs that best match your profile.</p>
     {% endif %}
 
     <form method="POST">
+      <div class="description-group">
+          <label for="user_description">
+              Describe any condition that might affect your job abilities (optional)
+          </label>
+          <textarea id="user_description" name="user_description" rows="4" placeholder="e.g., 'I have severe arthritis in my hands' or 'I experience frequent migraines'.">{{ request.form.user_description }}</textarea>
+          <p>If you provide a description, the job scores will be adjusted based on an AI assessment of how the condition impacts each skill.</p>
+      </div>
+
+      <hr style="margin: 2rem 0; border: 1px solid #eee;">
+
       {% for skill in skills %}
       {% set current = (scores[skill] if scores and (skill in scores) else 0) %}
       <div class="slider-group">
@@ -132,9 +168,9 @@
       <div class="results">
         <h2>Top Matching Job Titles</h2>
         <ol>
-          {% for title, score in results %}
-            <li>{{ title }} — {{ (score * 100) | round(1) }}%</li>
-          {% endfor %}
+          {% for title, score in results %}\
+            <li><strong>{{ title }}</strong> — Match Score: <span style="color: #007bff; font-weight: bold;">{{ (score * 100) | round(1) }}%</span></li>
+          {% endfor %}\
         </ol>
       </div>
     {% elif results is not none %}
