@@ -199,7 +199,7 @@ def ask_gemini(prompt: str) -> str | None:
     if not (api_key and genai): return None
     try:
         genai.configure(api_key=api_key)
-        model = genai.GenerativeModel("gemini-2.0-flash") # Using the most advanced model available
+        model = genai.GenerativeModel("gemini-2.0-flash") # Using the most cost effective model available
         resp = model.generate_content(prompt)
         return resp.text
     except Exception as e:
@@ -285,11 +285,16 @@ if __name__ == '__main__':
     # 3. A <button type="submit">Submit</button>
     app.run(debug=True)
 
-# results changing too frequently - check it out and fix, make sure gemini models are working, maybe put a bit of money in it
-# drop down menu for disabilities and severity
-# modify algorithm
-# add more files
-# ask user for interests and preferences separately
-# maybe a search for specific jobs and then show them results for that job and whether its recommended or not and why
-# ask the user to input their descriptions and show them their top skills and weakest skills (and all, maybe add search) and show wht affects it and how much and what they can do with a specific skill
-# run tests.
+# TODO: results changing too frequently - check it out and fix, make sure gemini models are working, maybe put a bit of money in it
+# TODO: drop down menu for disabilities and severity
+# TODO: modify algorithm
+# TODO: add more files
+# TODO: ask user for interests and preferences separately
+# TODO: maybe a search for specific jobs and then show them results for that job and whether its recommended or not and why
+# TODO: ask the user to input their descriptions and show them their top skills and weakest skills (and all, maybe add search) and show wht affects it and how much and what they can do with a specific skill
+# TODO: run tests.
+# TODO: add explanations for everything
+
+# TODO: maybe ask users a test to determine interests or conditions
+
+# TODO (for end of project): show progress, show code, show examples, what i missed, failures, how i could improve it in the future, reflection and conclusion
